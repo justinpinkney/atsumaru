@@ -16,7 +16,7 @@ def test_canvas_empty():
     assert len(canvas.available) == 0
 
 
-def test_canvas_one_slot():
+def test_canvas_availability():
     canvas_size = (10, 12)
     canvas = atsumaru.Canvas(canvas_size)
     
@@ -31,4 +31,30 @@ def test_canvas_one_slot():
     expected.update([(4, 5), (6, 5), (5, 4), (5, 6)])
 
     assert len(canvas.available) == 6
+    assert canvas.available == expected
+
+
+def test_canvas_no_duplicates():
+    canvas_size = (10, 12)
+    canvas = atsumaru.Canvas(canvas_size)
+    
+    patch = atsumaru.Patch([])
+    canvas.insert(patch, (0, 0))
+    canvas.insert(patch, (1, 1))
+    expected = set([(1, 0), (0, 1), (2, 1), (1, 2)])
+
+    assert len(canvas.available) == 4
+    assert canvas.available == expected
+
+
+def test_canvas_fill_available():
+    canvas_size = (10, 12)
+    canvas = atsumaru.Canvas(canvas_size)
+    
+    patch = atsumaru.Patch([])
+    canvas.insert(patch, (1, 1))
+    canvas.insert(patch, (1, 0))
+    expected = set([(0, 0), (0, 1), (2, 1), (1, 2), (2, 0)])
+
+    assert len(canvas.available) == 5
     assert canvas.available == expected

@@ -9,25 +9,36 @@ class Canvas():
         self.size = size
         self.slots = [[0] * self.size[0]] * self.size[1]
         self.available = set([])
+        self.filled = set([])
 
 
     def insert(self, contents, position):
+        """Add something to the canvas."""
         self.slots[position[0]][position[1]] = contents
+        self.filled.add(position)
         self.update_available(position)
 
 
     def update_available(self, position):
-        neighbours = ((-1, 0),
-                      (1, 0),
-                      (0, -1),
-                      (0, 1),)
-
+        """Update the set of available positions."""
+        neighbours = ((-1, 0), (1, 0), (0, -1), (0, 1))
 
         for neighbour in neighbours:
             location = tuple(x+y for x,y in zip(neighbour, position))
-            if all([x>=0 for x in location]) \
-                and all([x<max for x,max in zip(location, self.size)]):
-                    self.available.add(location)
+            if self.within_canvas(location):
+                self.available.add(location)
+
+        self.available = self.available - self.filled
+
+
+    def within_canvas(self, location):
+        """Checks if position is within the canvas."""
+        if all([x>=0 for x in location]) \
+            and all([x<max for x,max in zip(location, self.size)]):
+            return True
+        else:
+            return False
+        
 
         
 class Patch():
