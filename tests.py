@@ -58,3 +58,31 @@ def test_canvas_fill_available():
 
     assert len(canvas.available) == 5
     assert canvas.available == expected
+
+
+def test_get_neighbours():
+    canvas_size = (10, 12)
+    canvas = atsumaru.Canvas(canvas_size)
+    
+    patch = atsumaru.Patch([])
+    canvas.insert(patch, (1, 1))
+
+    neighbours = canvas.get_neighbours((1, 0))
+
+    assert neighbours == [patch,]
+
+def test_get_multiple_neighbours():
+    canvas_size = (8, 9)
+    canvas = atsumaru.Canvas(canvas_size)
+
+    patch = atsumaru.Patch([])
+    canvas.insert(patch, (1, 1))
+    
+    patch2 = atsumaru.Patch([0])
+    canvas.insert(patch2, (2, 0))
+
+    neighbours = canvas.get_neighbours((1, 0))
+
+    assert len(neighbours) == 2
+    assert set(neighbours) == set([patch, patch2])
+

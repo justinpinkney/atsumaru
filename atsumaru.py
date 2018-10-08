@@ -7,7 +7,12 @@ class Canvas():
 
     def __init__(self, size):
         self.size = size
-        self.slots = [[0] * self.size[0]] * self.size[1]
+        self.slots = []
+        for i in range(self.size[0]):
+            row = []
+            for j in range(self.size[1]):
+                row.append(None)
+            self.slots.append(row)
         self.available = set([])
         self.filled = set([])
 
@@ -21,14 +26,34 @@ class Canvas():
 
     def update_available(self, position):
         """Update the set of available positions."""
-        neighbours = ((-1, 0), (1, 0), (0, -1), (0, 1))
+        neighbourhood = ((-1, 0), (1, 0), (0, -1), (0, 1))
 
-        for neighbour in neighbours:
-            location = tuple(x+y for x,y in zip(neighbour, position))
+        for neighbour in neighbourhood:
+            location = tuple(dx+x for dx,x in zip(neighbour, position))
             if self.within_canvas(location):
                 self.available.add(location)
+                content = self.slots[location[0]][location[1]]
+                if not content:
+                    self.slots[location[0]][location[1]] = 0
 
         self.available = self.available - self.filled
+
+
+    def get_neighbours(self, position):
+        """Return all neighbour contents of position."""
+        neighbourhood = ((-1, 0), (1, 0), (0, -1), (0, 1))
+        content_neighbours = []
+
+        for neighbour in neighbourhood:
+            location = tuple(dx+x for dx,x in zip(neighbour, position))
+            if self.within_canvas(location):
+                print(location)
+                content = self.slots[location[0]][location[1]]
+                print(content)
+                if content:
+                    content_neighbours.append(content)
+        
+        return content_neighbours
 
 
     def within_canvas(self, location):
@@ -40,6 +65,18 @@ class Canvas():
             return False
         
 
+    def __repr__(self):
+        line = ''
+        for x in self.slots:
+            for y in x:
+                if y is None:
+                    line += '-'
+                elif y is 0:
+                    line += '0'
+                else:
+                    line += 'x'
+            line += '\n'
+        return line
         
 class Patch():
     """Respresents a small patch of image."""
