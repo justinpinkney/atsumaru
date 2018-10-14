@@ -1,4 +1,5 @@
 import random
+import math
 
 from PIL import Image
 
@@ -70,9 +71,12 @@ class Canvas():
                 if y is None:
                     line += '-'
                 elif y is 0:
-                    line += '0'
+                    line += '_'
                 else:
-                    line += 'x'
+                    if y.data < 10:
+                        line += str(y.data)
+                    else:
+                        line += '#'
             line += '\n'
         return line
         
@@ -90,7 +94,11 @@ class Matcher():
         pass
 
     def match(self, patch, neighbours):
-        return random.randint(1, 100)
+        distances = []
+        for neighbour in neighbours:
+            distance = abs(patch.data - neighbour.data)
+            distances.append(distance)
+        return min(distances)
 
 
 class Artist():
@@ -102,7 +110,7 @@ class Artist():
         self.matcher = Matcher()
 
         for i in range(20):
-            self.patches.append(Patch([]))
+            self.patches.append(Patch(i))
 
         patch = self.patches.pop(0)
         self.canvas.insert(patch, (5, 5))
