@@ -47,9 +47,7 @@ class Canvas():
         for neighbour in neighbourhood:
             location = tuple(dx+x for dx,x in zip(neighbour, position))
             if self.within_canvas(location):
-                print(location)
                 content = self.slots[location[0]][location[1]]
-                print(content)
                 if content:
                     content_neighbours.append(content)
         
@@ -84,6 +82,47 @@ class Patch():
     def __init__(self, data):
         self.data = data
 
+
+class Matcher():
+    """Measures fit of patch with neighbours."""
+
+    def __init__(self):
+        pass
+
+    def match(self, patch, neighbours):
+        return random.randint(1, 100)
+
+
+class Artist():
+    """Fills a canvas with image Patches."""
+
+    def __init__(self, canvas_size):
+        self.canvas = Canvas((canvas_size))
+        self.patches = []
+        self.matcher = Matcher()
+
+        for i in range(20):
+            self.patches.append(Patch([]))
+
+        patch = self.patches.pop(0)
+        self.canvas.insert(patch, (5, 5))
+    
+    def add_image(self, image):
+        # TODO make patches
+        # Add to list
+        pass
+
+    def step(self):
+        patch = self.patches.pop(0)
+        measure_list = []
+        for position in self.canvas.available:
+            neighbours = self.canvas.get_neighbours(position)
+            distance = self.matcher.match(patch, neighbours)
+            measure_list.append((position, distance))
+        # Select best match
+        measure_list.sort(key=lambda x: x[1])
+        best_position = measure_list[0][0]
+        self.canvas.insert(patch, best_position)
 
 if __name__ == "__main__":
     im = Image.open("data/test.JPG")
