@@ -109,16 +109,14 @@ class Artist():
         self.patches = []
         self.matcher = Matcher()
 
-        for i in range(20):
-            self.patches.append(Patch(i))
-
+        self.add_random(canvas_size[0]*canvas_size[1])
         patch = self.patches.pop(0)
         self.canvas.insert(patch, (5, 5))
     
-    def add_image(self, image):
-        # TODO make patches
-        # Add to list
-        pass
+    def add_random(self, random_size):
+        """Adds patches with random data."""
+        for x in range(random_size):
+            self.patches.append(Patch(random.randint(0, 255)))
 
     def step(self):
         patch = self.patches.pop(0)
@@ -131,6 +129,16 @@ class Artist():
         measure_list.sort(key=lambda x: x[1])
         best_position = measure_list[0][0]
         self.canvas.insert(patch, best_position)
+
+    def show(self):
+        output = Image.new('RGB', self.canvas.size)
+        pixels = output.load()
+        for x in range(self.canvas.size[0]):
+            for y in range(self.canvas.size[1]):
+                pixels[x, y] = self.canvas.slots[x][y].data
+        output = output.resize((200, 200))
+        output.show()
+
 
 if __name__ == "__main__":
     im = Image.open("data/test.JPG")

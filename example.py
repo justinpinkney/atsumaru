@@ -6,21 +6,12 @@ import atsumaru
 
 
 if __name__ == "__main__":
-    stdscr = curses.initscr()
-    curses.noecho()
-    curses.cbreak()
 
-    try:
-        canvas_size = (50, 50)
-        artist = atsumaru.Artist(canvas_size)
-        for i in range(20):
-            artist.step()
-            to_print = artist.canvas.__repr__()
-            stdscr.addstr(0, 0, to_print)
-            stdscr.refresh()
-            time.sleep(100/60)
+    canvas_size = (100, 100)
+    artist = atsumaru.Artist(canvas_size)
+    steps = canvas_size[0]*canvas_size[1]-1
+    for i in range(steps):
+        print(i)
+        artist.step()
 
-    finally:
-        curses.echo()
-        curses.nocbreak()
-        curses.endwin()
+    artist.show()
