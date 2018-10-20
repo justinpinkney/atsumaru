@@ -2,4 +2,4 @@
 
 A image montaging algorithm.
 
-![](output.png)
+![](output.jpg)
