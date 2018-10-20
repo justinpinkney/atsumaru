@@ -3,6 +3,7 @@ import math
 
 from PIL import Image
 from PIL import ImageStat
+from tqdm import tqdm
 
 class Canvas():
     """Represents a canvas on which to place patches."""
@@ -107,15 +108,21 @@ class Matcher():
 class Artist():
     """Fills a canvas with image Patches."""
 
-    def __init__(self, canvas_size):
-        self.canvas = Canvas((canvas_size))
+    def __init__(self, canvas_size=None):
         self.patches = []
         self.matcher = Matcher()
+        self.tile_size = 50
 
-        #self.add_random(canvas_size[0]*canvas_size[1])
         self.from_image("data/test.JPG")
+        if canvas_size:
+            self.canvas = Canvas((canvas_size))
+        else:
+            canvas_size = math.floor(math.sqrt(len(self.patches)))
+            self.canvas = Canvas((canvas_size, canvas_size))
         patch = self.patches.pop(0)
         self.canvas.insert(patch, (5, 5))
+        patch = self.patches.pop(0)
+        self.canvas.insert(patch, (50, 20))
     
     def add_random(self, random_size):
         """Adds patches with random data."""
@@ -125,7 +132,7 @@ class Artist():
     def from_image(self, image):
         im = Image.open(image)
         [width, height] = im.size
-        tile_size = 100
+        tile_size = self.tile_size
         n_tiles = [math.floor(x/tile_size) for x in im.size]
         for i in range(n_tiles[0] - 1):
             for j in range(n_tiles[1] - 1):
@@ -133,6 +140,14 @@ class Artist():
                 patch = Patch(im.crop(box))
                 self.patches.append(patch)
         random.shuffle(self.patches)
+
+    def fill(self):
+        """Fill the canvas with patches."""
+
+        num_iterations = len(self.patches)
+        for i in tqdm(range(num_iterations)):
+            self.step()
+
 
     def step(self):
         patch = self.patches.pop(0)
@@ -147,7 +162,7 @@ class Artist():
         self.canvas.insert(patch, best_position)
 
     def show(self):
-        tile_size = 100
+        tile_size = self.tile_size
         output = Image.new('RGB', [tile_size*x for x in self.canvas.size])
         for x in range(self.canvas.size[0]):
             for y in range(self.canvas.size[1]):
@@ -158,29 +173,3 @@ class Artist():
         output.save("output.jpg")
         output.show()
 
-
-if __name__ == "__main__":
-    im = Image.open("data/test.JPG")
-    box_size = (400, 400)
-    final_size = (50, 50)
-    canvas_size = (1000, 600)
-    n_boxes = [int(x/y) for x, y in zip(canvas_size, final_size)]
-
-    canvas = Image.new('RGB', canvas_size)
-    for i in range(n_boxes[0]):
-        for j in range(n_boxes[1]):
-            x = random.randint(0, im.size[0])
-            y = random.randint(0, im.size[1])
-            box = (x, y, x + box_size[0], y + box_size[1])
-            region = im.crop(box)
-            angle = random.randint(0, 3)*90
-            region_resized = region.resize(final_size).rotate(angle)
-            x_start = i*final_size[0]
-            y_start = j*final_size[1]
-            canvas.paste(region_resized, (x_start,
-                                          y_start, 
-                                          x_start + final_size[0], 
-                                          y_start + final_size[1]))
-
-
-    canvas.show()
