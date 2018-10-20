@@ -7,7 +7,7 @@ import atsumaru
 
 if __name__ == "__main__":
 
-    canvas_size = (100, 100)
+    canvas_size = (33, 33)
     artist = atsumaru.Artist(canvas_size)
     steps = canvas_size[0]*canvas_size[1]-1
     for i in range(steps):

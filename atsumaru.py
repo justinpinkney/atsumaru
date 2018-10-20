@@ -2,6 +2,7 @@ import random
 import math
 
 from PIL import Image
+from PIL import ImageStat
 
 class Canvas():
     """Represents a canvas on which to place patches."""
@@ -96,7 +97,9 @@ class Matcher():
     def match(self, patch, neighbours):
         distances = []
         for neighbour in neighbours:
-            distance = abs(patch.data - neighbour.data)
+            stats = ImageStat.Stat(patch.data)
+            neighbour_stats = ImageStat.Stat(neighbour.data)
+            distance = abs(sum(stats.mean) - sum(neighbour_stats.mean))
             distances.append(distance)
         return min(distances)
 
@@ -109,7 +112,8 @@ class Artist():
         self.patches = []
         self.matcher = Matcher()
 
-        self.add_random(canvas_size[0]*canvas_size[1])
+        #self.add_random(canvas_size[0]*canvas_size[1])
+        self.from_image("data/test.JPG")
         patch = self.patches.pop(0)
         self.canvas.insert(patch, (5, 5))
     
@@ -117,6 +121,18 @@ class Artist():
         """Adds patches with random data."""
         for x in range(random_size):
             self.patches.append(Patch(random.randint(0, 255)))
+
+    def from_image(self, image):
+        im = Image.open(image)
+        [width, height] = im.size
+        tile_size = 100
+        n_tiles = [math.floor(x/tile_size) for x in im.size]
+        for i in range(n_tiles[0] - 1):
+            for j in range(n_tiles[1] - 1):
+                box = (i*tile_size, j*tile_size, (i+1)*tile_size, (j+1)*tile_size)
+                patch = Patch(im.crop(box))
+                self.patches.append(patch)
+        random.shuffle(self.patches)
 
     def step(self):
         patch = self.patches.pop(0)
@@ -131,12 +147,15 @@ class Artist():
         self.canvas.insert(patch, best_position)
 
     def show(self):
-        output = Image.new('RGB', self.canvas.size)
-        pixels = output.load()
+        tile_size = 100
+        output = Image.new('RGB', [tile_size*x for x in self.canvas.size])
         for x in range(self.canvas.size[0]):
             for y in range(self.canvas.size[1]):
-                pixels[x, y] = self.canvas.slots[x][y].data
-        output = output.resize((200, 200))
+                im = self.canvas.slots[x][y].data
+                box = (x*tile_size, y*tile_size, (x+1)*tile_size, (y+1)*tile_size)
+                output.paste(im, box)
+        output = output.resize((math.floor(x/4) for x in output.size))
+        output.save("output.jpg")
         output.show()
 
 
