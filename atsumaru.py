@@ -27,6 +27,11 @@ class Canvas():
         self.update_available(position)
 
 
+    def get(self, position):
+        """Retrieve an item from a position."""
+        return self.slots[position[0]][position[1]]
+
+
     def update_available(self, position):
         """Update the set of available positions."""
         neighbourhood = ((-1, 0), (1, 0), (0, -1), (0, 1))
@@ -45,14 +50,14 @@ class Canvas():
     def get_neighbours(self, position):
         """Return all neighbour contents of position."""
         neighbourhood = ((-1, 0), (1, 0), (0, -1), (0, 1))
-        content_neighbours = []
+        content_neighbours = dict()
 
         for neighbour in neighbourhood:
             location = tuple(dx+x for dx,x in zip(neighbour, position))
             if self.within_canvas(location):
                 content = self.slots[location[0]][location[1]]
                 if content:
-                    content_neighbours.append(content)
+                    content_neighbours[neighbour] = content
         
         return content_neighbours
 
