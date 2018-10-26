@@ -5,6 +5,8 @@ from PIL import Image
 from PIL import ImageStat
 from tqdm import tqdm
 
+import numpy as np
+
 class Canvas():
     """Represents a canvas on which to place patches."""
 
@@ -87,11 +89,27 @@ class Canvas():
             line += '\n'
         return line
         
+
 class Patch():
     """Respresents a small patch of image."""
     
     def __init__(self, data):
-        self.data = data
+        self._data = data
+        self.orientation = 'UP'
+
+    @property
+    def data(self):
+        if self.orientation == 'UP':
+            rotation = 0
+        elif self.orientation == 'RIGHT':
+            rotation = 1
+        elif self.orientation == 'DOWN':
+            rotation = 2
+        elif self.orientation == 'LEFT':
+            rotation = 3
+        else:
+            raise ValueError('Invalid orientation')
+        return np.rot90(self._data, -rotation)
 
 
 class Matcher():
