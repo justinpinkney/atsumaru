@@ -50,11 +50,16 @@ class Canvas():
 
 
     def get_neighbours(self, position):
-        """Return all neighbour contents of position."""
+        """Return all neighbour contents of position.
+        
+        returned neighbours is a dictionary with each element of neighbourhood
+        as a key. The value is the neighbour or None if no neighbour.
+        """
         neighbourhood = ((-1, 0), (1, 0), (0, -1), (0, 1))
         content_neighbours = dict()
 
         for neighbour in neighbourhood:
+            content_neighbours[neighbour] = None
             location = tuple(dx+x for dx,x in zip(neighbour, position))
             if self.within_canvas(location):
                 content = self.slots[location[0]][location[1]]

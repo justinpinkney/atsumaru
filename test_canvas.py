@@ -79,7 +79,10 @@ def test_get_neighbours():
     canvas_size = (10, 12)
     canvas = atsumaru.Canvas(canvas_size)
     canvas.insert(1, (1, 1))
-    expected_neighbours = {(0, 1): 1}
+    expected_neighbours = {(0, 1): 1,
+                            (0, -1): None,
+                            (1, 0): None,
+                            (-1, 0): None,}
 
     neighbours = canvas.get_neighbours((1, 0))
 
@@ -94,10 +97,10 @@ def test_get_multiple_neighbours():
     canvas.insert(2, (2, 0))
     expected_neighbours = {(1, 0): 2,
                             (0, 1): 1,
-                            }
+                            (-1, 0): None,
+                            (0, -1): None,}
     
     neighbours = canvas.get_neighbours((1, 0))
 
-    assert len(neighbours) == 2
     assert neighbours == expected_neighbours
 
