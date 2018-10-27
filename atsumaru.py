@@ -125,11 +125,12 @@ class Matcher():
 
     def match(self, patch, neighbours):
         distances = []
-        for neighbour in neighbours:
-            stats = ImageStat.Stat(patch.data)
-            neighbour_stats = ImageStat.Stat(neighbour.data)
-            distance = abs(sum(stats.mean) - sum(neighbour_stats.mean))
-            distances.append(distance)
+        for neighbour in neighbours.values():
+            if neighbour:
+                distance = abs(np.mean(patch.data, axis=(0, 1)) - 
+                                np.mean(neighbour.data, axis=(0,1)))
+                distance = np.sum(distance)
+                distances.append(distance)
         return min(distances)
 
 
@@ -139,7 +140,7 @@ class Artist():
     def __init__(self, canvas_size=None):
         self.patches = []
         self.matcher = Matcher()
-        self.tile_size = 50
+        self.tile_size = 100
 
         self.from_image("data/test.JPG")
         if canvas_size:
@@ -150,7 +151,7 @@ class Artist():
         patch = self.patches.pop(0)
         self.canvas.insert(patch, (5, 5))
         patch = self.patches.pop(0)
-        self.canvas.insert(patch, (50, 20))
+        self.canvas.insert(patch, (7, 10))
     
     def add_random(self, random_size):
         """Adds patches with random data."""
@@ -196,7 +197,7 @@ class Artist():
             for y in range(self.canvas.size[1]):
                 im = self.canvas.slots[x][y].data
                 box = (x*tile_size, y*tile_size, (x+1)*tile_size, (y+1)*tile_size)
-                output.paste(im, box)
+                output.paste(Image.fromarray(im), box)
         output = output.resize((math.floor(x/4) for x in output.size))
         output.save("output.jpg")
         output.show()
