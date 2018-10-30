@@ -117,7 +117,7 @@ class Patch():
         return np.rot90(self._data, -rotation)
 
 
-class Matcher():
+class MeanMatcher():
     """Measures fit of patch with neighbours."""
 
     def __init__(self):
@@ -134,12 +134,40 @@ class Matcher():
         return min(distances)
 
 
+class PositionMatcher():
+    """Checks fit based on position of neighbours."""
+
+    def __init__(self):
+        neighbourhood = ((-1, 0), (1, 0), (0, -1), (0, 1))
+
+    def match(self, patch, neighbours):
+        distance = 0
+        for index, position in enumerate(self.neighbourhood):
+            neighbour = neighbours[position]
+            if neighbour:
+                if index == 0: # left
+                    patch_row = patch.data[0,:]
+                    neighbour_row = neighbour.data[-1,:]
+                if index == 1: # right
+                    patch_row = patch.data[-1,:]
+                    neighbour_row = neighbour.data[0,:]
+                if index == 2: # up
+                    patch_row = patch.data[:,0]
+                    neighbour_row = neighbour.data[:,-1]
+                if index == 3: # down
+                    patch_row = patch.data[:,-1]
+                    neighbour_row = neighbour.data[:,0]
+                differnece = patch_row - neighbour_row
+                distance += np.sum(abs(difference))
+        return distance
+
+
 class Artist():
     """Fills a canvas with image Patches."""
 
     def __init__(self, canvas_size=None):
         self.patches = []
-        self.matcher = Matcher()
+        self.matcher = MeanMatcher()
         self.tile_size = 100
 
         self.from_image("data/test.JPG")
