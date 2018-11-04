@@ -97,10 +97,11 @@ class Canvas():
 
 class Patch():
     """Respresents a small patch of image."""
+    orientations = ('UP', 'RIGHT', 'DOWN', 'LEFT')
     
     def __init__(self, data):
         self._data = data
-        self.orientation = 'UP'
+        self.orientation = random.choice(Patch.orientations)
 
     @property
     def data(self):
@@ -138,7 +139,7 @@ class PositionMatcher():
     """Checks fit based on position of neighbours."""
 
     def __init__(self):
-        neighbourhood = ((-1, 0), (1, 0), (0, -1), (0, 1))
+        self.neighbourhood = ((-1, 0), (1, 0), (0, -1), (0, 1))
 
     def match(self, patch, neighbours):
         distance = 0
@@ -146,18 +147,19 @@ class PositionMatcher():
             neighbour = neighbours[position]
             if neighbour:
                 if index == 0: # left
-                    patch_row = patch.data[0,:]
-                    neighbour_row = neighbour.data[-1,:]
+                    patch_row = patch.data[:10,:]
+                    neighbour_row = neighbour.data[-10,:]
                 if index == 1: # right
-                    patch_row = patch.data[-1,:]
-                    neighbour_row = neighbour.data[0,:]
+                    patch_row = patch.data[-10:,:]
+                    neighbour_row = neighbour.data[:10,:]
                 if index == 2: # up
-                    patch_row = patch.data[:,0]
-                    neighbour_row = neighbour.data[:,-1]
+                    patch_row = patch.data[:,:10]
+                    neighbour_row = neighbour.data[:,-10:]
                 if index == 3: # down
-                    patch_row = patch.data[:,-1]
-                    neighbour_row = neighbour.data[:,0]
-                differnece = patch_row - neighbour_row
+                    patch_row = patch.data[:,-10:]
+                    neighbour_row = neighbour.data[:,:10]
+                difference = np.mean(patch_row, axis=(0, 1)) - \
+                                np.mean(neighbour_row, axis=(0, 1))
                 distance += np.sum(abs(difference))
         return distance
 
@@ -167,8 +169,8 @@ class Artist():
 
     def __init__(self, canvas_size=None):
         self.patches = []
-        self.matcher = MeanMatcher()
-        self.tile_size = 100
+        self.matcher = PositionMatcher()
+        self.tile_size = 50
 
         self.from_image("data/test.JPG")
         if canvas_size:
