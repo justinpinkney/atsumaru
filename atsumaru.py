@@ -1,5 +1,6 @@
 import random
 import math
+from glob import glob
 
 from PIL import Image
 from PIL import ImageStat
@@ -99,9 +100,13 @@ class Patch():
     """Respresents a small patch of image."""
     orientations = ('UP', 'RIGHT', 'DOWN', 'LEFT')
     
-    def __init__(self, data):
+    def __init__(self, data, orient=None):
         self._data = data
-        self.orientation = random.choice(Patch.orientations)
+        #TODO validate
+        if orient:
+            self.orientation = orient
+        else:
+            self.orientation = random.choice(Patch.orientations)
 
     @property
     def data(self):
@@ -135,6 +140,35 @@ class MeanMatcher():
         return min(distances)
 
 
+class MeanMatcherAlpha():
+    """Measure difference in mean accounting for transparency."""
+
+    def __init__(self):
+        pass
+
+    def match(self, patch, neighbours):
+        if patch.data.shape[2] < 4:
+            raise ValueError("Input doesn't have alpha channel")
+        distances = []
+        for neighbour in neighbours.values():
+            if neighbour:
+                patch_rgb = patch.data[:,:,:3]
+                patch_a = patch.data[:,:,3]
+
+                if neighbour.data.shape[2] < 4:
+                    raise ValueError("Input doesn't have alpha channel")
+                                    
+                neighbour_rgb = neighbour.data[:,:,:3]
+                neighbour_a = neighbour.data[:,:,3]
+
+                distance = abs(np.mean(patch_rgb[patch_a==255], axis=0) - 
+                                np.mean(neighbour_rgb[neighbour_a==255], axis=0))
+                if any(distance == np.NaN):
+                    raise ValueError("nan")
+                distance = np.sum(distance)
+                distances.append(distance)
+        return min(distances)
+
 class PositionMatcher():
     """Checks fit based on position of neighbours."""
 
@@ -164,20 +198,52 @@ class PositionMatcher():
         return distance
 
 
+def patches_from_image(image, tile_size):
+    """Creates patches from an image."""
+    patches = []
+    im = Image.open(image)
+    [width, height] = im.size
+    n_tiles = [math.floor(x/tile_size) for x in im.size]
+
+    for i in range(n_tiles[0] - 1):
+        for j in range(n_tiles[1] - 1):
+            box = (i*tile_size, j*tile_size, (i+1)*tile_size, (j+1)*tile_size)
+            patch = Patch(im.crop(box))
+            patches.append(patch)
+
+    random.shuffle(patches)
+    return patches
+
+def patches_from_directory(directory, tile_size):
+    """Creates patches from a directory of images."""
+    patches = []
+    images = glob(directory + "/*.png")
+
+    for idx, filename in enumerate(images):
+        image = Image.open(filename)
+        image_resized = image.resize((tile_size, tile_size))
+        patches.append(Patch(np.array(image_resized), "UP"))
+        if idx == 1155:
+            break
+
+    return patches
+
+    
 class Artist():
     """Fills a canvas with image Patches."""
 
     def __init__(self, canvas_size=None):
-        self.patches = []
-        self.matcher = PositionMatcher()
-        self.tile_size = 50
+        self.matcher = MeanMatcherAlpha()
+        self.tile_size = 300
+        #self.patches = patches_from_image("data/test.JPG", self.tile_size)
+        self.patches = patches_from_directory("data/birds", self.tile_size)
 
-        self.from_image("data/test.JPG")
         if canvas_size:
             self.canvas = Canvas((canvas_size))
         else:
             canvas_size = math.floor(math.sqrt(len(self.patches)))
             self.canvas = Canvas((canvas_size, canvas_size))
+
         patch = self.patches.pop(0)
         self.canvas.insert(patch, (5, 5))
         patch = self.patches.pop(0)
@@ -188,21 +254,10 @@ class Artist():
         for x in range(random_size):
             self.patches.append(Patch(random.randint(0, 255)))
 
-    def from_image(self, image):
-        im = Image.open(image)
-        [width, height] = im.size
-        tile_size = self.tile_size
-        n_tiles = [math.floor(x/tile_size) for x in im.size]
-        for i in range(n_tiles[0] - 1):
-            for j in range(n_tiles[1] - 1):
-                box = (i*tile_size, j*tile_size, (i+1)*tile_size, (j+1)*tile_size)
-                patch = Patch(im.crop(box))
-                self.patches.append(patch)
-        random.shuffle(self.patches)
-
     def fill(self):
         """Fill the canvas with patches."""
 
+        #TODO need to check canvas size
         num_iterations = len(self.patches)
         for i in tqdm(range(num_iterations)):
             self.step()
@@ -222,13 +277,15 @@ class Artist():
 
     def show(self):
         tile_size = self.tile_size
-        output = Image.new('RGB', [tile_size*x for x in self.canvas.size])
+        output = Image.new('RGBA', 
+                            [tile_size*x for x in self.canvas.size], 
+                            (255, 255, 255, 255))
         for x in range(self.canvas.size[0]):
             for y in range(self.canvas.size[1]):
                 im = self.canvas.slots[x][y].data
                 box = (x*tile_size, y*tile_size, (x+1)*tile_size, (y+1)*tile_size)
                 output.paste(Image.fromarray(im), box)
         output = output.resize((math.floor(x/4) for x in output.size))
-        output.save("output.jpg")
+        output.save("output.png")
         output.show()
 
