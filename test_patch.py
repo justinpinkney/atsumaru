@@ -18,8 +18,6 @@ def test_parameter():
     input_data = np.array([[0, 1], [2, 3]])
     patch = atsumaru.Patch(input_data)
 
-    assert patch.orientation == 'UP'
-
     patch.orientation = 'RIGHT'
 
     expected_data = np.array([[2, 0], [3, 1]])
